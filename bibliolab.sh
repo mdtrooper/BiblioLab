@@ -31,7 +31,7 @@ do
 			else
 				libros+=("$id" "\Zb$titulo ($correo)\ZB")
 			fi
-		done < $db
+		done < "$db"
 		
 		opcion=$(dialog --no-shadow --colors --no-lines --no-kill --no-cancel --menu "\ZbLIBROS DE BIBLIOLAB DISPONIBLES AHORA MISMO\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
 		if [ ! -z "$opcion" ]
@@ -44,7 +44,7 @@ do
 		fi
 	fi
 	
-	seleccionado=$(cat $db | head -n $opcion | tail -n 1)
+	seleccionado=$(cat "$db" | head -n $opcion | tail -n 1)
 	sid=$(echo $seleccionado | cut -d ";" -f 1)
 	slibro=$(echo $seleccionado | cut -d ";" -f 2)
 	status=$(echo $seleccionado | cut -d ";" -f 3)
@@ -63,16 +63,16 @@ do
 		if [ $op -eq 2 ]
 		then
 			sustitucion="$sid;$slibro;0;disponible"
-			sed "s/$seleccionado/$sustitucion/g" $db > /tmp/tmp.csv
-			cp /tmp/tmp.csv $db
+			sed "s/$seleccionado/$sustitucion/g" "$db" > /tmp/tmp.csv
+			cp /tmp/tmp.csv "$db"
 		fi
 		
 		if [ $op -eq 1 ]
 		then
 			umail=$(dialog --no-shadow --colors --no-cancel --inputbox "Ha de escribir su \ZbEmail\ZB\nNo sea Troll. BiblioLAB se basa en la autogestión y la confianza: " 10 0 --output-fd 1)
 			sustitucion="$sid;$slibro;1;$umail"
-			sed "s/$seleccionado/$sustitucion/g" $db > /tmp/tmp.csv
-			cp /tmp/tmp.csv $db
+			sed "s/$seleccionado/$sustitucion/g" "$db" > /tmp/tmp.csv
+			cp /tmp/tmp.csv "$db"
 		fi
 	else
 		paso1=0
