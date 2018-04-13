@@ -29,7 +29,9 @@ anyadir_libro()
 	then
 		if [ ! -z "$nuevo_libro" ]
 		then
-			echo -e "\n$nuevo_id;$nuevo_libro;0;disponible" >> $db
+			timestamp=$(date +%s)
+			cp $db "$db.$timestamp"
+			echo -e "$nuevo_id;$nuevo_libro;0;disponible" >> $db
 		else
 			dialog --no-shadow --colors --no-lines --no-kill --msgbox "No seas Troll mete un título para el libro." 0 0
 		fi
