@@ -7,10 +7,13 @@ trap '' 1 2 3 15 20
 echo -e "keymaps 0-127\nkeycode 1 =" > /tmp/key.map
 loadkeys /tmp/key.map
 
-# archivo con el listado de libros
+# Archivo con el listado de libros
 db="libros.csv"
 
-dialog --no-shadow --colors --no-lines --no-kill --infobox "    \ZbBienvenid@ amig@\ZB \n  --------------------\n  2017 IngoberLAB #301\n  --------------------\n  BiblioLAB 0.1 - fiwi\n  --------------------\n  _.-._.-._.-._.-._.-_" 10 30
+# Estilo de los formularios
+estilo_formularios="--no-shadow --colors --no-lines"
+
+dialog $estilo_formularios --no-kill --infobox "    \ZbBienvenid@ amig@\ZB \n  --------------------\n  2017 IngoberLAB #301\n  --------------------\n  BiblioLAB 0.1 - fiwi\n  --------------------\n  _.-._.-._.-._.-._.-_" 10 30
 sleep 5
 
 paso1=0
@@ -29,7 +32,7 @@ anyadir_libro()
 	done < "$db"
 	
 	nuevo_id=$(( id + 1 ))
-	nuevo_libro=$(dialog --no-shadow --colors --no-lines --no-kill --inputbox "Título del nuevo libro:" 0 0 --output-fd 1)
+	nuevo_libro=$(dialog $estilo_formularios --no-lines --no-kill --inputbox "Título del nuevo libro:" 0 0 --output-fd 1)
 	nuevo_libro=$(echo -n $nuevo_libro | sed "s/;/ /g")
 	if [ $? -ne 1 ]
 	then
@@ -39,7 +42,7 @@ anyadir_libro()
 			
 			echo -e "$nuevo_id;$nuevo_libro;0;disponible" >> $db
 		else
-			dialog --no-shadow --colors --no-lines --no-kill --msgbox "No seas Troll mete un título para el libro." 0 0
+			dialog $estilo_formularios --no-lines --no-kill --msgbox "No seas Troll mete un título para el libro." 0 0
 		fi
 	fi
 }
@@ -61,7 +64,7 @@ borrar_libro()
 	done < "$db"
 	unset libro
 	
-	opcion=$(dialog --no-shadow --colors --no-lines --no-kill --menu "\Zb¿QUÉ LIBRO QUIERES BORRAR?\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
+	opcion=$(dialog $estilo_formularios --no-lines --no-kill --menu "\Zb¿QUÉ LIBRO QUIERES BORRAR?\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
 	unset libros
 	
 	if [ $? -ne 1 ]
@@ -107,7 +110,7 @@ editar_libro()
 	done < "$db"
 	unset libro
 	
-	opcion=$(dialog --no-shadow --colors --no-lines --no-kill --menu "\Zb¿QUÉ LIBRO QUIERES EDITAR?\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
+	opcion=$(dialog $estilo_formularios --no-lines --no-kill --menu "\Zb¿QUÉ LIBRO QUIERES EDITAR?\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
 	unset libros
 	
 	if [ $? -ne 1 ]
@@ -116,7 +119,7 @@ editar_libro()
 		then
 			titulo_antiguo=$(grep libros.csv -e "^$opcion;" | cut -d ";" -f 2)
 			
-			nuevo_titulo=$(dialog --no-shadow --colors --no-lines --no-kill --inputbox "Editar libro:" 0 0 "$titulo_antiguo" --output-fd 1)
+			nuevo_titulo=$(dialog $estilo_formularios --no-kill --inputbox "Editar libro:" 0 0 "$titulo_antiguo" --output-fd 1)
 			nuevo_titulo=$(echo -n $nuevo_titulo | sed "s/;/ /g")
 			
 			hacer_backup
@@ -139,7 +142,7 @@ editar_biblioteca()
 	opciones=(0 "Añadir libro")
 	opciones+=(1 "Borrar libro")
 	opciones+=(2 "Editar libro")
-	opcion=$(dialog --no-shadow --colors --no-lines --no-kill --menu "\ZbEditar Biblioteca\ZB" 0 0 0 "${opciones[@]}" --output-fd 1)
+	opcion=$(dialog $estilo_formularios --no-kill --menu "\ZbEditar Biblioteca\ZB" 0 0 0 "${opciones[@]}" --output-fd 1)
 	
 	case $opcion in
 		0)
@@ -173,7 +176,7 @@ do
 			fi
 		done < "$db"
 		
-		opcion=$(dialog --no-shadow --colors --no-lines --no-kill --no-cancel --menu "\ZbLIBROS DE BIBLIOLAB DISPONIBLES AHORA MISMO\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
+		opcion=$(dialog $estilo_formularios --no-kill --no-cancel --menu "\ZbLIBROS DE BIBLIOLAB DISPONIBLES AHORA MISMO\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
 		unset libro
 		
 		if [ ! -z "$opcion" ]
@@ -198,9 +201,9 @@ do
 		
 		if [ $status -eq 0 ]
 		then
-			op=$(dialog --no-lines --no-shadow --colors --no-lines --menu "$slibro" 10 0 2 "1" "Coger" --output-fd 1)
+			op=$(dialog $estilo_formularios --no-lines --menu "$slibro" 10 0 2 "1" "Coger" --output-fd 1)
 		else
-			op=$(dialog --no-lines --no-shadow --colors --no-lines --menu "\Zb$slibro\ZB lo tiene $email" 10 0 2 "2" "Devolver" --output-fd 1)
+			op=$(dialog $estilo_formularios --menu "\Zb$slibro\ZB lo tiene $email" 10 0 2 "2" "Devolver" --output-fd 1)
 		fi
 		
 		if [ $op ]
@@ -215,7 +218,7 @@ do
 			
 			if [ $op -eq 1 ]
 			then
-				umail=$(dialog --no-shadow --colors --no-cancel --inputbox "Ha de escribir su \ZbEmail\ZB\nNo sea Troll. BiblioLAB se basa en la autogestión y la confianza: " 10 0 --output-fd 1)
+				umail=$(dialog $estilo_formularios --no-cancel --inputbox "Ha de escribir su \ZbEmail\ZB\nNo sea Troll. BiblioLAB se basa en la autogestión y la confianza: " 10 0 --output-fd 1)
 				sustitucion="$sid;$slibro;1;$umail"
 				sed "s/$seleccionado/$sustitucion/g" "$db" > /tmp/tmp.csv
 				cp /tmp/tmp.csv "$db"
