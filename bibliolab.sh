@@ -61,7 +61,7 @@ borrar_libro()
 	done < "$db"
 	unset libro
 	
-	opcion=$(dialog --no-shadow --colors --no-lines --no-kill --no-cancel --menu "\Zb¿QUÉ LIBRO QUIERES BORRAR?\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
+	opcion=$(dialog --no-shadow --colors --no-lines --no-kill --menu "\Zb¿QUÉ LIBRO QUIERES BORRAR?\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
 	unset libros
 	
 	if [ $? -ne 1 ]
@@ -92,7 +92,45 @@ borrar_libro()
 
 editar_libro()
 {
-	exit 0
+	while read -r libro || [[ -n $libro ]]
+	do
+		id=$(echo $libro | cut -d ";" -f 1)
+		titulo=$(echo $libro | cut -d ";" -f 2)
+		estado=$(echo $libro | cut -d ";" -f 3)
+		correo=$(echo $libro | cut -d ";" -f 4)
+		if [ $estado -eq 0 ]
+		then
+			libros+=("$id" "$titulo")
+		else
+			libros+=("$id" "\Zb$titulo ($correo)\ZB")
+		fi
+	done < "$db"
+	unset libro
+	
+	opcion=$(dialog --no-shadow --colors --no-lines --no-kill --menu "\Zb¿QUÉ LIBRO QUIERES EDITAR?\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
+	unset libros
+	
+	if [ $? -ne 1 ]
+	then
+		if [ ! -z "$opcion" ]
+		then
+			titulo_antiguo=$(grep libros.csv -e "^$opcion;" | cut -d ";" -f 2)
+			
+			nuevo_titulo=$(dialog --no-shadow --colors --no-lines --no-kill --inputbox "Editar libro:" 0 0 "$titulo_antiguo" --output-fd 1)
+			nuevo_titulo=$(echo -n $nuevo_titulo | sed "s/;/ /g")
+			
+			hacer_backup
+			
+			echo -n "" > "temp"
+			
+			head -n$(( $opcion - 1)) $db >> "temp"
+			echo -n "$opcion;$nuevo_titulo;$(grep $db -e "^$opcion;" | cut -d";" -f3-4)" >> "temp"
+			tail -n+$(($opcion + 1)) $db >> "temp"
+			mv "temp" $db
+		else
+			unset opcion
+		fi
+	fi
 }
 
 editar_biblioteca()
