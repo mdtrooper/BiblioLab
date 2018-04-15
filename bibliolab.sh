@@ -15,6 +15,12 @@ sleep 5
 
 paso1=0
 
+hacer_backup()
+{
+	timestamp=$(date +%s)
+	cp $db "$db.$timestamp"
+}
+
 anyadir_libro()
 {
 	while read -r libro || [[ -n $libro ]]
@@ -29,8 +35,8 @@ anyadir_libro()
 	then
 		if [ ! -z "$nuevo_libro" ]
 		then
-			timestamp=$(date +%s)
-			cp $db "$db.$timestamp"
+			hacer_backup
+			
 			echo -e "$nuevo_id;$nuevo_libro;0;disponible" >> $db
 		else
 			dialog --no-shadow --colors --no-lines --no-kill --msgbox "No seas Troll mete un título para el libro." 0 0
@@ -40,7 +46,48 @@ anyadir_libro()
 
 borrar_libro()
 {
-	exit 0
+	while read -r libro || [[ -n $libro ]]
+	do
+		id=$(echo $libro | cut -d ";" -f 1)
+		titulo=$(echo $libro | cut -d ";" -f 2)
+		estado=$(echo $libro | cut -d ";" -f 3)
+		correo=$(echo $libro | cut -d ";" -f 4)
+		if [ $estado -eq 0 ]
+		then
+			libros+=("$id" "$titulo")
+		else
+			libros+=("$id" "\Zb$titulo ($correo)\ZB")
+		fi
+	done < "$db"
+	unset libro
+	
+	opcion=$(dialog --no-shadow --colors --no-lines --no-kill --no-cancel --menu "\Zb¿QUÉ LIBRO QUIERES BORRAR?\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
+	unset libros
+	
+	if [ $? -ne 1 ]
+	then
+		if [ ! -z "$opcion" ]
+		then
+			hacer_backup
+			
+			listado_libro_borrado=$(grep libros.csv -v -e "^$opcion;" | cut -d ";" -f 2-4)
+			
+			echo -n "" > $db
+			
+			IFS=$'\n'
+			i=1
+			for libro in $listado_libro_borrado
+			do
+				if [ -n "$libro" ]
+				then
+					echo "$i;$libro" >> $db
+					i=$(( $i + 1 ))
+				fi
+			done
+		else
+			unset opcion
+		fi
+	fi
 }
 
 editar_libro()
@@ -89,12 +136,12 @@ do
 		done < "$db"
 		
 		opcion=$(dialog --no-shadow --colors --no-lines --no-kill --no-cancel --menu "\ZbLIBROS DE BIBLIOLAB DISPONIBLES AHORA MISMO\ZB" 0 0 0 "${libros[@]}" --output-fd 1)
+		unset libro
 		
 		if [ ! -z "$opcion" ]
 		then
-			echo "la opcion es $opcion"
 			paso1=1
-			unset libros libro
+			unset libros
 		else
 			unset opcion
 		fi
